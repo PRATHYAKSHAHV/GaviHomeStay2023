@@ -208,9 +208,9 @@ export function Home() {
         style={{
           backgroundImage: `url(${gaviHeroImage})`,
           backgroundAttachment: 'fixed',
-          backgroundPosition: 'center center',
+          backgroundPosition: 'bottom',
           backgroundRepeat: 'no-repeat',
-          backgroundSize: 'auto',
+          backgroundSize: '100%',
         }}
       >
         <div className="absolute inset-0">
