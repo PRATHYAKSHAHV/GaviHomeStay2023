@@ -203,13 +203,17 @@ export function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[600px] lg:h-[700px] overflow-hidden">
+      <section
+        className="relative h-[600px] lg:h-[700px] overflow-hidden bg-black"
+        style={{
+          backgroundImage: `url(${gaviHeroImage})`,
+          backgroundAttachment: 'fixed',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'auto',
+        }}
+      >
         <div className="absolute inset-0">
-          <ImageWithFallback
-            src={gaviHeroImage}
-            alt="GaVi Homestay in Sringeri"
-            className="w-full h-full object-cover"
-          />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/70" />
           
           {/* Organic shapes overlay */}
