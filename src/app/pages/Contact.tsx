@@ -9,7 +9,7 @@ import {
   Send,
   Facebook,
   Instagram,
-  Twitter,
+  /*Twitter,*/
 } from 'lucide-react';
 
 export function Contact() {
