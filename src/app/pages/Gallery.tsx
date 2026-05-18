@@ -38,7 +38,7 @@ export function Gallery() {
 
   const galleryImages = [
     { url: gaviHero, category: 'Exterior', title: 'GaVi Homestay Hero View' },
-    { url: ghHero, category: 'Exterior', title: 'Homestay Exterior View' },
+    // { url: ghHero, category: 'Exterior', title: 'Homestay Exterior View' },
     { url: gaviAbout, category: 'Exterior', title: 'About Homestay View' },
     { url: gaviBackShot, category: 'Exterior', title: 'Back Side View' },
     { url: gaviLongShot, category: 'Exterior', title: 'Long Shot View' },
