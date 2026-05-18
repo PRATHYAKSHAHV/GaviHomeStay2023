@@ -334,7 +334,7 @@ export function Contact() {
                 </p>
                 <div className="flex space-x-4">
                   <a
-                    href="https://facebook.com"
+                    href="https://www.facebook.com/share/1CBdpXKLXe/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors"
@@ -342,21 +342,21 @@ export function Contact() {
                     <Facebook className="w-6 h-6" />
                   </a>
                   <a
-                    href="https://instagram.com"
+                    href="https://www.instagram.com/gavi_homestay?igsh=MXFrZnNleThhaHQ3MA=="
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors"
                   >
                     <Instagram className="w-6 h-6" />
                   </a>
-                  <a
+                  {/* <a
                     href="https://twitter.com"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors"
                   >
                     <Twitter className="w-6 h-6" />
-                  </a>
+                  </a> */}
                 </div>
               </div>
             </motion.div>
@@ -422,4 +422,3 @@ export function Contact() {
     </div>
   );
 }
-

@@ -277,13 +277,13 @@ export function Home() {
                 <Phone className="w-5 h-5" />
                 <span>Call Now</span>
               </a>
-              <a
+              {/* <a
                 href="https://wa.me/917483859167"
                 className="flex items-center justify-center space-x-2 px-8 py-4 bg-[#25D366] text-white rounded-lg hover:bg-[#20ba5a] transition-colors text-base lg:text-lg"
               >
                 <MessageCircle className="w-5 h-5" />
                 <span>WhatsApp</span>
-              </a>
+              </a> */}
             </motion.div>
           </motion.div>
         </div>
