@@ -204,13 +204,13 @@ export function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section
-        className="relative h-[600px] lg:h-[700px] overflow-hidden bg-black"
+        className="relative h-[600px] lg:h-[900px] overflow-hidden bg-black"
         style={{
           backgroundImage: `url(${gaviHeroImage})`,
           backgroundAttachment: 'fixed',
           backgroundPosition: 'bottom',
           backgroundRepeat: 'no-repeat',
-          backgroundSize: '100%',
+          backgroundSize: '100% 100%',
         }}
       >
         <div className="absolute inset-0">
