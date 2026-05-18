@@ -1,0 +1,77 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar - Nature Theme */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #eef4ee;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #3d7c4f, #7ca77c);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #2c4a35, #3d7c4f);
+}
+
+/* Animation Utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes leafFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+.animate-leaf-float {
+  animation: leafFloat 3s ease-in-out infinite;
+}
+
+/* Nature-inspired gradient backgrounds */
+.bg-nature-gradient {
+  background: linear-gradient(135deg, #eef4ee 0%, #d8e6d8 50%, #eef4ee 100%);
+}
+
+.bg-nature-radial {
+  background: radial-gradient(circle at center, #fafbf9 0%, #eef4ee 100%);
+}
