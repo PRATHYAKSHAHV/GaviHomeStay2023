@@ -18,7 +18,7 @@ import {
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import gaviHeroImage from '../../images/GaVi-Hero.jpg';
 import gaviAboutImage from '../../images/GaVi-About.jpg';
-import ghHeroImage from '../../images/GH-Hero.jpg';
+// import ghHeroImage from '../../images/GH-Hero.jpg';
 import gaviTrekkingImage from '../../images/GaVi-Trekking.jpg';
 import gavi4x4Image from '../../images/GaVi-4x4.jpg';
 import gaviDinnerSetImage from '../../images/GaVi-Homestay-Dinnerset.jpg';
@@ -203,17 +203,13 @@ export function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section
-        className="relative h-[600px] lg:h-[900px] overflow-hidden bg-black"
-        style={{
-          backgroundImage: `url(${gaviHeroImage})`,
-          backgroundAttachment: 'fixed',
-          backgroundPosition: 'bottom',
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: '100% 100%',
-        }}
-      >
+      <section className="relative h-[600px] lg:h-[700px] overflow-hidden">
         <div className="absolute inset-0">
+          <ImageWithFallback
+            src={gaviHeroImage}
+            alt="GaVi Homestay in Sringeri"
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/70" />
           
           {/* Organic shapes overlay */}
