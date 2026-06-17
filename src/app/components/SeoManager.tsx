@@ -99,7 +99,8 @@ export function SeoManager() {
   const location = useLocation();
 
   useEffect(() => {
-    const posts = getPosts();
+    const applyMeta = async () => {
+      const posts = await getPosts();
     const postSlugMatch = location.pathname.match(/^\/posts\/([a-z0-9-]+)$/);
     const matchedPost = postSlugMatch
       ? posts.find((post) => post.seo.slug === postSlugMatch[1])
@@ -238,6 +239,8 @@ export function SeoManager() {
       };
       upsertSchema('ld-local-business', localBusinessSchema);
     }
+      };
+    applyMeta();
   }, [location.pathname]);
 
   return null;
