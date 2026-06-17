@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 import gaviHeroImage from '../../images/GaVi-Hero.jpg';
+import { getPosts } from '../lib/postsStorage';
 
 type SeoConfig = {
   title: string;
@@ -8,6 +9,15 @@ type SeoConfig = {
   keywords: string;
   path: string;
   noindex?: boolean;
+  canonicalUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  schemaType?: 'Article' | 'BlogPosting';
+  h1?: string;
+  postTitle?: string;
+  content?: string;
+  createdAt?: string;
 };
 
 const SEO_MAP: Record<string, SeoConfig> = {
@@ -89,17 +99,46 @@ export function SeoManager() {
   const location = useLocation();
 
   useEffect(() => {
-    const seo = SEO_MAP[location.pathname] ?? {
-      title: 'Page Not Found | GaVi Homestay',
-      description: 'The page you are looking for is not available.',
-      keywords: 'gavi homestay',
-      path: location.pathname,
-      noindex: true,
-    };
+    const posts = getPosts();
+    const postSlugMatch = location.pathname.match(/^\/posts\/([a-z0-9-]+)$/);
+    const matchedPost = postSlugMatch
+      ? posts.find((post) => post.seo.slug === postSlugMatch[1])
+      : undefined;
+
+    const seo = matchedPost
+      ? {
+          title: matchedPost.seo.seoTitle,
+          description: matchedPost.seo.metaDescription,
+          keywords: matchedPost.seo.focusKeyword || 'gavi homestay post',
+          path: `/posts/${matchedPost.seo.slug}`,
+          noindex: matchedPost.seo.noindex,
+          canonicalUrl: matchedPost.seo.canonicalUrl,
+          ogTitle: matchedPost.seo.ogTitle,
+          ogDescription: matchedPost.seo.ogDescription,
+          ogImage: matchedPost.seo.ogImage,
+          schemaType: matchedPost.seo.schemaType,
+          h1: matchedPost.seo.h1,
+          postTitle: matchedPost.title,
+          content: matchedPost.content,
+          createdAt: matchedPost.createdAt,
+        }
+      : SEO_MAP[location.pathname] ?? {
+          title: 'Page Not Found | GaVi Homestay',
+          description: 'The page you are looking for is not available.',
+          keywords: 'gavi homestay',
+          path: location.pathname,
+          noindex: true,
+        };
 
     const baseUrl = window.location.origin;
-    const canonicalUrl = `${baseUrl}${seo.path}`;
-    const ogImage = `${baseUrl}${gaviHeroImage}`;
+    const canonicalUrl = seo.canonicalUrl?.startsWith('http')
+      ? seo.canonicalUrl
+      : `${baseUrl}${seo.canonicalUrl || seo.path}`;
+    const ogImage = seo.ogImage?.startsWith('http') || seo.ogImage?.startsWith('data:')
+      ? seo.ogImage
+      : seo.ogImage
+        ? `${baseUrl}${seo.ogImage}`
+        : `${baseUrl}${gaviHeroImage}`;
 
     document.title = seo.title;
 
@@ -128,18 +167,52 @@ export function SeoManager() {
     upsertMeta('description', seo.description);
     upsertMeta('keywords', seo.keywords);
     upsertMeta('robots', seo.noindex ? 'noindex, nofollow' : 'index, follow');
-    upsertMeta('og:title', seo.title, true);
-    upsertMeta('og:description', seo.description, true);
-    upsertMeta('og:type', 'website', true);
+    upsertMeta('og:title', seo.ogTitle || seo.title, true);
+    upsertMeta('og:description', seo.ogDescription || seo.description, true);
+    upsertMeta('og:type', matchedPost ? 'article' : 'website', true);
     upsertMeta('og:url', canonicalUrl, true);
     upsertMeta('og:image', ogImage, true);
     upsertMeta('twitter:card', 'summary_large_image');
-    upsertMeta('twitter:title', seo.title);
-    upsertMeta('twitter:description', seo.description);
+    upsertMeta('twitter:title', seo.ogTitle || seo.title);
+    upsertMeta('twitter:description', seo.ogDescription || seo.description);
     upsertMeta('twitter:image', ogImage);
     upsertCanonical(canonicalUrl);
 
-    if (!seo.noindex) {
+    const upsertSchema = (id: string, schema: Record<string, unknown>) => {
+      let schemaTag = document.head.querySelector(`#${id}`) as HTMLScriptElement | null;
+      if (!schemaTag) {
+        schemaTag = document.createElement('script');
+        schemaTag.id = id;
+        schemaTag.type = 'application/ld+json';
+        document.head.appendChild(schemaTag);
+      }
+      schemaTag.textContent = JSON.stringify(schema);
+    };
+
+    if (matchedPost && !seo.noindex) {
+      const postSchema = {
+        '@context': 'https://schema.org',
+        '@type': seo.schemaType || 'Article',
+        headline: seo.h1 || seo.postTitle,
+        name: seo.postTitle,
+        description: seo.description,
+        datePublished: seo.createdAt,
+        dateModified: seo.createdAt,
+        image: ogImage,
+        mainEntityOfPage: canonicalUrl,
+        author: {
+          '@type': 'Organization',
+          name: 'GaVi Homestay',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'GaVi Homestay',
+        },
+      };
+      upsertSchema('ld-post-schema', postSchema);
+    }
+
+    if (!matchedPost && !seo.noindex) {
       const localBusinessSchema = {
         '@context': 'https://schema.org',
         '@type': 'LodgingBusiness',
@@ -163,15 +236,7 @@ export function SeoManager() {
           longitude: '75.2529',
         },
       };
-
-      let schemaTag = document.head.querySelector('#ld-local-business') as HTMLScriptElement | null;
-      if (!schemaTag) {
-        schemaTag = document.createElement('script');
-        schemaTag.id = 'ld-local-business';
-        schemaTag.type = 'application/ld+json';
-        document.head.appendChild(schemaTag);
-      }
-      schemaTag.textContent = JSON.stringify(localBusinessSchema);
+      upsertSchema('ld-local-business', localBusinessSchema);
     }
   }, [location.pathname]);
 
