@@ -1,7 +1,8 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { CalendarDays, Lock, PlusCircle, Trash2, X } from 'lucide-react';
-import { getPosts, savePosts, type Post } from '../lib/postsStorage';
+import { getPosts, savePost, deletePost, type Post } from '../lib/postsStorage';
+import { supabase } from '../lib/supabase';
 
 const ADMIN_POSTS_PASSCODE =
   (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.VITE_ADMIN_POSTS_PASSCODE ??
@@ -16,14 +17,24 @@ const slugify = (value: string) =>
     .replace(/-+/g, '-');
 
 const MAX_POST_IMAGES = 6;
+const STORAGE_BUCKET = 'post-images';
 
-const readFileAsDataUrl = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(new Error('Failed to read image file.'));
-    reader.readAsDataURL(file);
-  });
+const uploadImageToStorage = async (file: File): Promise<string | null> => {
+  const safeFileName = file.name.replace(/[^a-z0-9._-]/gi, '_');
+  const filePath = `${Date.now()}-${safeFileName}`;
+
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, file, { cacheControl: '31536000', upsert: false });
+
+  if (error || !data) return null;
+
+  const { data: urlData } = supabase.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(data.path);
+
+  return urlData.publicUrl;
+};
 
 export function AdminPosts() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -49,7 +60,7 @@ export function AdminPosts() {
   const [imageErrorMessage, setImageErrorMessage] = useState('');
 
   useEffect(() => {
-    setPosts(getPosts());
+    getPosts().then(setPosts);
   }, []);
 
   useEffect(() => {
@@ -91,11 +102,19 @@ export function AdminPosts() {
     }
 
     try {
-      const uploadedImages = await Promise.all(files.map((file) => readFileAsDataUrl(file)));
-      setImages((currentImages) => [...currentImages, ...uploadedImages]);
-      setImageErrorMessage('');
+      setImageErrorMessage('Uploading…');
+      const results = await Promise.all(files.map((file) => uploadImageToStorage(file)));
+      const uploadedUrls = results.filter((url): url is string => url !== null);
+
+      if (uploadedUrls.length < files.length) {
+        setImageErrorMessage('Some images could not be uploaded. Check your Supabase Storage bucket and try again.');
+      } else {
+        setImageErrorMessage('');
+      }
+
+      setImages((currentImages) => [...currentImages, ...uploadedUrls]);
     } catch {
-      setImageErrorMessage('Could not process one or more images. Please try again.');
+      setImageErrorMessage('Upload failed. Please check your connection and try again.');
     } finally {
       event.target.value = '';
     }
@@ -105,7 +124,7 @@ export function AdminPosts() {
     setImages((currentImages) => currentImages.filter((_, index) => index !== indexToRemove));
   };
 
-  const handleAddPost = (event: FormEvent<HTMLFormElement>) => {
+  const handleAddPost = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!title.trim() || !content.trim()) return;
 
@@ -149,16 +168,16 @@ export function AdminPosts() {
       },
     };
 
-    const updatedPosts = [newPost, ...posts];
-    const isSaved = savePosts(updatedPosts);
+    const isSaved = await savePost(newPost);
     if (!isSaved) {
       setPostErrorMessage(
-        'Post could not be saved. Uploaded images may be too large for browser storage. Try fewer/smaller images.'
+        'Post could not be saved. Please check your connection and try again. If you uploaded large images, try fewer or smaller ones.'
       );
       return;
     }
 
-    setPosts(updatedPosts);
+    const refreshed = await getPosts();
+    setPosts(refreshed);
 
     setPostErrorMessage('');
     setTitle('');
@@ -179,15 +198,14 @@ export function AdminPosts() {
     setImageErrorMessage('');
   };
 
-  const handleDeletePost = (postId: number) => {
-    const updatedPosts = posts.filter((post) => post.id !== postId);
-    const isSaved = savePosts(updatedPosts);
-    if (!isSaved) {
-      setPostErrorMessage('Post could not be deleted because browser storage update failed. Please try again.');
+  const handleDeletePost = async (postId: number) => {
+    const isDeleted = await deletePost(postId);
+    if (!isDeleted) {
+      setPostErrorMessage('Post could not be deleted. Please check your connection and try again.');
       return;
     }
 
-    setPosts(updatedPosts);
+    setPosts((current) => current.filter((post) => post.id !== postId));
   };
 
   return (
