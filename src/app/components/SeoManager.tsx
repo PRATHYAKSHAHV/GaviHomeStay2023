@@ -239,7 +239,7 @@ export function SeoManager() {
       };
       upsertSchema('ld-local-business', localBusinessSchema);
     }
-      };
+    };
     applyMeta();
   }, [location.pathname]);
 
