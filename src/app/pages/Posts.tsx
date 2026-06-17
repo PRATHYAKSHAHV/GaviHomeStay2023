@@ -10,7 +10,7 @@ export function Posts() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    setPosts(getPosts());
+    getPosts().then(setPosts);
   }, []);
 
   useEffect(() => {
