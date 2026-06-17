@@ -8,7 +8,7 @@ export function PostDetails() {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    setPosts(getPosts());
+    getPosts().then(setPosts);
   }, []);
 
   const post = useMemo(() => posts.find((item) => item.seo.slug === slug), [posts, slug]);
