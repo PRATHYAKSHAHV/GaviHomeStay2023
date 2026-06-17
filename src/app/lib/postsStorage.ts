@@ -73,6 +73,11 @@ export function getPosts(): Post[] {
   }
 }
 
-export function savePosts(posts: Post[]) {
-  localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
+export function savePosts(posts: Post[]): boolean {
+  try {
+    localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
+    return true;
+  } catch {
+    return false;
+  }
 }
