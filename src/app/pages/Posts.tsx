@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { CalendarDays } from 'lucide-react';
-import { useSearchParams } from 'react-router';
+import { CalendarDays, ExternalLink } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router';
 import { getPosts, type Post } from '../lib/postsStorage';
 
 export function Posts() {
@@ -71,13 +71,35 @@ export function Posts() {
                 }`}
               >
                 <div className="flex items-center justify-between gap-4 mb-3">
-                  <h3 className="text-2xl text-primary">{post.title}</h3>
+                  <h3 className="text-2xl text-primary">{post.seo.h1 || post.title}</h3>
                   <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
                     <CalendarDays className="w-4 h-4" />
                     {post.createdAt}
                   </span>
                 </div>
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
+
+                {post.images.length > 0 && (
+                  <div className="mb-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {post.images.map((image, imageIndex) => (
+                      <img
+                        key={`${post.id}-listing-image-${imageIndex}`}
+                        src={image}
+                        alt={`${post.title} image ${imageIndex + 1}`}
+                        className="h-28 w-full object-cover rounded-lg border border-border"
+                        loading="lazy"
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap mb-4">{post.content}</p>
+                <Link
+                  to={`/posts/${post.seo.slug}`}
+                  className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Read full post
+                </Link>
               </motion.article>
             ))}
           </div>
