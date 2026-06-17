@@ -1,3 +1,5 @@
+import { createClient } from '@supabase/supabase-js';
+
 export type PostSeo = {
   seoTitle: string;
   metaDescription: string;
@@ -21,7 +23,10 @@ export type Post = {
   seo: PostSeo;
 };
 
-const POSTS_STORAGE_KEY = 'gavi_posts';
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL ?? '',
+  import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
+);
 
 const slugify = (value: string) =>
   value
@@ -60,24 +65,39 @@ const normalizePost = (rawPost: Partial<Post> & { title?: string; content?: stri
   };
 };
 
-export function getPosts(): Post[] {
-  const rawPosts = localStorage.getItem(POSTS_STORAGE_KEY);
-  if (!rawPosts) return [];
+export async function getPosts(): Promise<Post[]> {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .order('id', { ascending: false });
 
-  try {
-    const parsedPosts = JSON.parse(rawPosts) as Array<Partial<Post>>;
-    if (!Array.isArray(parsedPosts)) return [];
-    return parsedPosts.map((post) => normalizePost(post));
-  } catch {
-    return [];
-  }
+  if (error || !data) return [];
+
+  return data.map((row) =>
+    normalizePost({
+      id: row.id,
+      title: row.title,
+      content: row.content,
+      createdAt: row.created_at,
+      images: row.images,
+      seo: row.seo,
+    })
+  );
 }
 
-export function savePosts(posts: Post[]): boolean {
-  try {
-    localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
-    return true;
-  } catch {
-    return false;
-  }
+export async function savePost(post: Post): Promise<boolean> {
+  const { error } = await supabase.from('posts').upsert({
+    id: post.id,
+    title: post.title,
+    content: post.content,
+    created_at: post.createdAt,
+    images: post.images,
+    seo: post.seo,
+  });
+  return !error;
+}
+
+export async function deletePost(id: number): Promise<boolean> {
+  const { error } = await supabase.from('posts').delete().eq('id', id);
+  return !error;
 }
