@@ -2,7 +2,6 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { CalendarDays, Lock, PlusCircle, Trash2, X } from 'lucide-react';
 import { getPosts, savePost, deletePost, type Post } from '../lib/postsStorage';
-import { supabase } from '../lib/supabase';
 
 const ADMIN_POSTS_PASSCODE =
   (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.VITE_ADMIN_POSTS_PASSCODE ??
@@ -17,24 +16,14 @@ const slugify = (value: string) =>
     .replace(/-+/g, '-');
 
 const MAX_POST_IMAGES = 6;
-const STORAGE_BUCKET = 'post-images';
 
-const uploadImageToStorage = async (file: File): Promise<string | null> => {
-  const safeFileName = file.name.replace(/[^a-z0-9._-]/gi, '_');
-  const filePath = `${Date.now()}-${safeFileName}`;
-
-  const { data, error } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .upload(filePath, file, { cacheControl: '31536000', upsert: false });
-
-  if (error || !data) return null;
-
-  const { data: urlData } = supabase.storage
-    .from(STORAGE_BUCKET)
-    .getPublicUrl(data.path);
-
-  return urlData.publicUrl;
-};
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Failed to read image file.'));
+    reader.readAsDataURL(file);
+  });
 
 export function AdminPosts() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -102,19 +91,11 @@ export function AdminPosts() {
     }
 
     try {
-      setImageErrorMessage('Uploading…');
-      const results = await Promise.all(files.map((file) => uploadImageToStorage(file)));
-      const uploadedUrls = results.filter((url): url is string => url !== null);
-
-      if (uploadedUrls.length < files.length) {
-        setImageErrorMessage('Some images could not be uploaded. Check your Supabase Storage bucket and try again.');
-      } else {
-        setImageErrorMessage('');
-      }
-
-      setImages((currentImages) => [...currentImages, ...uploadedUrls]);
+      const uploadedImages = await Promise.all(files.map((file) => readFileAsDataUrl(file)));
+      setImages((currentImages) => [...currentImages, ...uploadedImages]);
+      setImageErrorMessage('');
     } catch {
-      setImageErrorMessage('Upload failed. Please check your connection and try again.');
+      setImageErrorMessage('Could not process one or more images. Please try again.');
     } finally {
       event.target.value = '';
     }
