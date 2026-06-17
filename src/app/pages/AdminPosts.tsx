@@ -150,8 +150,15 @@ export function AdminPosts() {
     };
 
     const updatedPosts = [newPost, ...posts];
+    const isSaved = savePosts(updatedPosts);
+    if (!isSaved) {
+      setPostErrorMessage(
+        'Post could not be saved. Uploaded images may be too large for browser storage. Try fewer/smaller images.'
+      );
+      return;
+    }
+
     setPosts(updatedPosts);
-    savePosts(updatedPosts);
 
     setPostErrorMessage('');
     setTitle('');
@@ -174,8 +181,13 @@ export function AdminPosts() {
 
   const handleDeletePost = (postId: number) => {
     const updatedPosts = posts.filter((post) => post.id !== postId);
+    const isSaved = savePosts(updatedPosts);
+    if (!isSaved) {
+      setPostErrorMessage('Post could not be deleted because browser storage update failed. Please try again.');
+      return;
+    }
+
     setPosts(updatedPosts);
-    savePosts(updatedPosts);
   };
 
   return (
